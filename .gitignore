@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv.*/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# uv
+/backend/.venv/
+/backend/uv.lock
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+frontend/dist/
+frontend/.vite/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+
+# MNE / data caches
+~/.seeg-agent/
+.seeg-agent-cache/
+
+# Demo EDF 文件（193MB > GitHub 100MB 上限）。需要本地自备 demo/ 数据。
+demo/*.edf
+demo/*.EDF
+*.edf.bak
+*.fif
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+
+# Memory store dumps
+memory/
