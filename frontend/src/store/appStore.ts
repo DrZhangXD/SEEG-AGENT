@@ -116,7 +116,7 @@ function savePP(p: PreprocessingSettings) {
 export const useAppStore = create<AppState>((set) => ({
   recording: null,
   selectedChannels: [],
-  llmProvider: "claude-sonnet-4.6",
+  llmProvider: "ollama-qwen2.5",
   results: [],
   busy: false,
   preprocessing: loadPP(),

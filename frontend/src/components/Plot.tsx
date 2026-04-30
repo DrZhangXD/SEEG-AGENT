@@ -37,7 +37,6 @@ const Plotly = unwrap<unknown>(plotlyModule, false);
 if (typeof createPlotlyComponent !== "function") {
   // Surface a clear error in the console rather than React's opaque
   // "Element type is invalid" if the unwrap somehow still missed.
-  // eslint-disable-next-line no-console
   console.error("[Plot] createPlotlyComponent unwrap failed:", factoryModule);
 }
 

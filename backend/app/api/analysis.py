@@ -219,25 +219,33 @@ def comprehensive_report(req: ReportReq) -> dict:
         # represents the whole montage rather than just the first lead.
         stride = max(1, len(clean_full) // req.max_channels)
         idx = list(range(0, len(clean_full), stride))[: req.max_channels]
-        clean = [clean_full[i] for i in idx]
-        raw_names = [raw_names_full[i] for i in idx]
+        clean_plot = [clean_full[i] for i in idx]
+        raw_names_plot = [raw_names_full[i] for i in idx]
     else:
-        clean = clean_full
-        raw_names = raw_names_full
+        clean_plot = clean_full
+        raw_names_plot = raw_names_full
 
     cards: list[dict] = []
     summary: dict = {
         "recording": meta.filename,
-        "channels": clean,
+        # Backwards-compatible name used by the frontend for dense plotted channels.
+        "channels": clean_plot,
+        "event_channels": clean_full,
         "channels_total": len(clean_full),
-        "channels_sampled": len(clean) < len(clean_full),
+        "channels_sampled": len(clean_plot) < len(clean_full),
         "t_stop": t_stop,
     }
 
     # 1. 滤波波形 (前 10 s)
-    rfilt = S.filter_raw(raw, raw_names, req.bp_low, req.bp_high, [req.notch_hz] if req.notch_hz else None)
+    rfilt = S.filter_raw(
+        raw,
+        raw_names_plot,
+        req.bp_low,
+        req.bp_high,
+        [req.notch_hz] if req.notch_hz else None,
+    )
     wf_t = min(10.0, t_stop)
-    wf = S.get_waveform(rfilt, rfilt.ch_names, clean, 0.0, wf_t, max_points=5000)
+    wf = S.get_waveform(rfilt, rfilt.ch_names, clean_plot, 0.0, wf_t, max_points=5000)
     cards.append({
         "kind": "waveform",
         "title": f"滤波波形 (notch {req.notch_hz}Hz, {req.bp_low}–{req.bp_high}Hz)",
@@ -245,7 +253,7 @@ def comprehensive_report(req: ReportReq) -> dict:
     })
 
     # 2. PSD
-    psd_r = S.compute_psd(raw, raw_names, clean, fmin=1.0, fmax=200.0)
+    psd_r = S.compute_psd(raw, raw_names_plot, clean_plot, fmin=1.0, fmax=200.0)
     cards.append({
         "kind": "psd",
         "title": "功率谱密度",
@@ -253,15 +261,16 @@ def comprehensive_report(req: ReportReq) -> dict:
     })
 
     # 3. 频段功率
-    bp_r = S.compute_band_power(raw, raw_names, clean)
+    bp_r = S.compute_band_power(raw, raw_names_plot, clean_plot)
     cards.append({
         "kind": "bandpower",
         "title": "频段功率热图",
         "figure": V.band_power_fig(bp_r),
     })
 
-    # 4. HFO ripple
-    hfo_r = S.detect_hfo(raw, raw_names, clean, band="ripple", t_stop=t_stop)
+    # 4. HFO ripple. Run event/rate summaries over the full requested channel
+    # set even when dense waveform/PSD plots are sampled down for browser health.
+    hfo_r = S.detect_hfo(raw, raw_names_full, clean_full, band="ripple", t_stop=t_stop)
     cards.append({
         "kind": "hfo",
         "title": f"HFO·Ripple ({hfo_r.n_events} 事件 / {hfo_r.duration_sec:.0f}s)",
@@ -271,7 +280,7 @@ def comprehensive_report(req: ReportReq) -> dict:
     summary["hfo_ripple_top"] = sorted(hfo_r.rate_per_min.items(), key=lambda kv: -kv[1])[:3]
 
     # 5. IED
-    ied_r = S.detect_ied(raw, raw_names, clean, t_stop=t_stop)
+    ied_r = S.detect_ied(raw, raw_names_full, clean_full, t_stop=t_stop)
     cards.append({
         "kind": "ied",
         "title": f"IED ({ied_r.n_events} 事件 / {ied_r.duration_sec:.0f}s)",
@@ -281,10 +290,10 @@ def comprehensive_report(req: ReportReq) -> dict:
     summary["ied_top"] = sorted(ied_r.rate_per_min.items(), key=lambda kv: -kv[1])[:3]
 
     # 6. Connectivity (γ coherence) — only if ≥2 channels
-    if len(clean) >= 2:
+    if len(clean_plot) >= 2:
         try:
             con_r = S.compute_connectivity(
-                raw, raw_names, clean,
+                raw, raw_names_plot, clean_plot,
                 method="coh", band="gamma",
                 t_start=0.0, t_stop=min(30.0, t_stop),
             )

@@ -271,7 +271,18 @@ function LlmTab() {
   }
 
   useEffect(() => {
-    refresh();
+    let ignore = false;
+    api
+      .listCustomProviders()
+      .then((providers) => {
+        if (!ignore) setList(providers);
+      })
+      .catch((e) => {
+        if (!ignore) setErr(String(e));
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   function applyPreset(key: string) {

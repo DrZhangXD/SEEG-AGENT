@@ -73,7 +73,7 @@ export function ChatPanel() {
       if (m.type === "figure") {
         addResult({
           id: `agent-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          kind: m.kind as "waveform" | "psd" | "tfr" | "bandpower",
+          kind: m.kind as "waveform" | "psd" | "tfr" | "bandpower" | "hfo" | "ied" | "connectivity",
           title: `🤖 ${m.title}`,
           figures: m.figures,
           createdAt: Date.now(),

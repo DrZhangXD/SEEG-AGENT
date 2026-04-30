@@ -69,15 +69,19 @@ export function BrainPanel() {
   const [err, setErr] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Reset & fetch existing electrodes when recording changes.
+  // Fetch existing electrodes when recording changes; render only matching sets.
   useEffect(() => {
-    setEs(null);
-    setErr(null);
     if (!recording) return;
+    let ignore = false;
     api
       .getElectrodes(recording.recording_id)
-      .then((r) => setEs(r.contacts.length > 0 ? r : null))
+      .then((r) => {
+        if (!ignore) setEs(r.contacts.length > 0 ? r : null);
+      })
       .catch(() => {});
+    return () => {
+      ignore = true;
+    };
   }, [recording]);
 
   async function onSynthesize() {
@@ -112,10 +116,12 @@ export function BrainPanel() {
     setEs(null);
   }
 
+  const activeEs = es && recording && es.recording_id === recording.recording_id ? es : null;
+
   const traces = useMemo(() => {
-    if (!es) return [];
-    const byLead = new Map<string, typeof es.contacts>();
-    for (const c of es.contacts) {
+    if (!activeEs) return [];
+    const byLead = new Map<string, ElectrodeSet["contacts"]>();
+    for (const c of activeEs.contacts) {
       const k = leadOf(c.channel_name);
       if (!byLead.has(k)) byLead.set(k, []);
       byLead.get(k)!.push(c);
@@ -148,15 +154,19 @@ export function BrainPanel() {
       });
     }
     return out;
-  }, [es, selected]);
+  }, [activeEs, selected]);
 
   return (
     <div className="brain-panel">
       <div className="signal-header">
         <h3>3D 脑图谱</h3>
         <div className="signal-actions">
-          {es && <span className="muted">来源：{es.source === "csv" ? "CSV 上传" : "合成占位"}</span>}
-          {es && <button onClick={onClear}>清除</button>}
+          {activeEs && (
+            <span className="muted">
+              来源：{activeEs.source === "csv" ? "CSV 上传" : "合成占位"}
+            </span>
+          )}
+          {activeEs && <button onClick={onClear}>清除</button>}
         </div>
       </div>
       <div className="toolbar">
@@ -183,13 +193,13 @@ export function BrainPanel() {
       </div>
       {err && <div className="error">{err}</div>}
       {!recording && <div className="muted placeholder">请先打开一个 EDF 文件</div>}
-      {recording && !es && (
+      {recording && !activeEs && (
         <div className="muted placeholder">
           点击 "生成合成坐标" 看到 76 个 SEEG 触点的占位 3D 视图，<br />
           或上传真实 MNI152 坐标 CSV。
         </div>
       )}
-      {es && (
+      {activeEs && (
         <div className="fig-wrap" style={{ height: 360 }}>
           <Plot
             data={traces as Plotly.Data[]}

@@ -14,6 +14,29 @@ from ..settings import settings
 router = APIRouter(prefix="/api/files", tags=["files"])
 
 
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _allowed_file_path(path: Path) -> bool:
+    p = path.resolve()
+    allowed_roots = (settings.demo_dir.resolve(), settings.upload_dir.resolve())
+    return any(_is_relative_to(p, root) for root in allowed_roots)
+
+
+def _safe_upload_name(filename: str) -> str:
+    name = Path(filename).name
+    if not name or name in {".", ".."}:
+        raise HTTPException(400, "文件名无效")
+    if not name.lower().endswith(".edf"):
+        raise HTTPException(400, "仅支持 .edf 文件")
+    return name
+
+
 @router.get("/demo")
 def list_demo_files() -> list[dict]:
     """EDF files in the project's demo/ folder."""
@@ -28,12 +51,16 @@ def list_demo_files() -> list[dict]:
 
 @router.post("/upload")
 async def upload_file(file: UploadFile) -> dict:
-    if not file.filename or not file.filename.lower().endswith(".edf"):
-        raise HTTPException(400, "仅支持 .edf 文件")
-    dst = settings.upload_dir / file.filename
+    if not file.filename:
+        raise HTTPException(400, "缺少文件名")
+    dst = settings.upload_dir / _safe_upload_name(file.filename)
     with dst.open("wb") as f:
         shutil.copyfileobj(file.file, f)
-    meta = session_store.open_recording(str(dst))
+    try:
+        meta = session_store.open_recording(str(dst))
+    except Exception as e:
+        dst.unlink(missing_ok=True)
+        raise HTTPException(400, f"无法读取 EDF: {e}") from e
     return meta.to_dict()
 
 
@@ -46,7 +73,14 @@ def open_recording(body: dict) -> dict:
     p = Path(path).resolve()
     if not p.exists():
         raise HTTPException(404, f"文件不存在: {p}")
-    meta = session_store.open_recording(str(p))
+    if not p.is_file() or p.suffix.lower() != ".edf":
+        raise HTTPException(400, "仅支持 .edf 文件")
+    if not _allowed_file_path(p):
+        raise HTTPException(403, "只允许打开 demo 或 upload 目录内的 EDF 文件")
+    try:
+        meta = session_store.open_recording(str(p))
+    except Exception as e:
+        raise HTTPException(400, f"无法读取 EDF: {e}") from e
     return meta.to_dict()
 
 
