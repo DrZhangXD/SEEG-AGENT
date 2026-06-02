@@ -1,25 +1,27 @@
 # SEEG-AGENT
 
-面向 SEEG（立体脑电图）LFP 信号分析的交互式 agent 工作台。
+**English** · [简体中文](./README.zh-CN.md)
 
-**核心特性**
-- 交互式中文 Web 界面（Vite + React + TypeScript + Zustand）
-- 多大模型后端可热切换：Anthropic Claude、OpenAI、DeepSeek、通义千问、Kimi、本地 Ollama
-- LFP 分析全套：滤波、PSD（Welch）、时频图（Morlet）、频段功率、HFO（Ripple / Fast Ripple）、IED（间期痫样放电）、频段连接性（coh / plv / wpli / imcoh）
-- 3D 电极触点可视化（Plotly scatter3d + 头壳网格），支持 CSV/TSV 上传或合成占位坐标
-- 一键综合分析报告：滤波波形 + PSD + 频段功率 + HFO + IED + γ 连接性 一次产出
-- 基于 [MNE-Python](https://mne.tools/) + [mne-connectivity](https://mne.tools/mne-connectivity/) + [Pydantic AI](https://ai.pydantic.dev/)
+An interactive agent workbench for SEEG (stereo-electroencephalography) LFP signal analysis.
+
+**Highlights**
+- Interactive web UI (Vite + React + TypeScript + Zustand)
+- Hot-swappable LLM backends: Anthropic Claude, OpenAI, DeepSeek, Tongyi Qianwen (Qwen), Kimi, and local Ollama
+- Full LFP analysis suite: filtering, PSD (Welch), time–frequency maps (Morlet), band power, HFO (Ripple / Fast Ripple), IED (interictal epileptiform discharges), and band-limited connectivity (coh / plv / wpli / imcoh)
+- 3D electrode-contact visualization (Plotly scatter3d + head-shell mesh), with CSV/TSV upload or synthetic placeholder coordinates
+- One-click comprehensive report: filtered waveform + PSD + band power + HFO + IED + γ connectivity produced in a single pass
+- Built on [MNE-Python](https://mne.tools/) + [mne-connectivity](https://mne.tools/mne-connectivity/) + [Pydantic AI](https://ai.pydantic.dev/)
 
 ---
 
-## 目录结构
+## Project layout
 
 ```
 SEEG-AGENT/
 ├── backend/         # FastAPI + MNE + Pydantic AI
 │   ├── app/
 │   │   ├── api/             # files / analysis / electrodes / chat (WS)
-│   │   ├── analysis/        # 纯函数 MNE 封装
+│   │   ├── analysis/        # pure-function MNE wrappers
 │   │   ├── agent/           # Pydantic AI agent + multi-provider
 │   │   ├── io/              # EDF loader / electrode CSV / session store
 │   │   └── viz/             # Plotly JSON serializers
@@ -27,121 +29,119 @@ SEEG-AGENT/
 ├── frontend/        # Vite + React + Plotly + Zustand
 │   └── src/
 │       ├── components/      # ChatPanel / SignalPanel / BrainPanel / ChannelList ...
-│       ├── api/             # 类型化 fetch/WS 客户端
-│       └── store/           # Zustand 状态
-├── demo/            # 示例 EDF
-├── .env.example     # LLM 密钥模板
+│       ├── api/             # typed fetch/WS client
+│       └── store/           # Zustand state
+├── demo/            # sample EDF files
+├── .env.example     # LLM key template
 └── Makefile
 ```
 
-## 环境要求
+## Requirements
 
-- Python ≥ 3.11（用 `uv` 管理虚拟环境）
-- Node ≥ 20（推荐 22/24）
-- macOS / Linux；Windows 未测试
+- Python ≥ 3.11 (virtual environment managed with [`uv`](https://docs.astral.sh/uv/))
+- Node ≥ 20 (22/24 recommended)
+- macOS / Linux; Windows untested
 
-## 快速开始
+## Quick start
 
 ```bash
-# 1. 复制环境变量模板
-cp .env.example backend/.env   # 填入你的 ANTHROPIC_API_KEY 等
+# 1. Copy the environment-variable template
+cp .env.example backend/.env   # fill in ANTHROPIC_API_KEY, etc.
 
-# 2. 安装依赖
+# 2. Install dependencies
 make install
 
-# 3. 启动后端（终端 A）
+# 3. Start the backend (terminal A)
 make backend        # http://127.0.0.1:8000/docs
 
-# 4. 启动前端（终端 B）
+# 4. Start the frontend (terminal B)
 make frontend       # http://127.0.0.1:5173
 ```
 
-首次打开前端，在左侧 "Demo 文件" 列表点击任一 `.edf` 即可加载。
+On first launch, click any `.edf` entry in the left-hand **Demo files** list to load it.
 
-## 启用 LLM Provider
+## Enabling LLM providers
 
-`backend/.env` 中只要填了对应 `*_API_KEY`，前端模型下拉就会出现该 provider：
+Any provider whose `*_API_KEY` is set in `backend/.env` automatically appears in the frontend model dropdown:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...        # Claude（claude-sonnet-4.5 / opus / haiku）
+ANTHROPIC_API_KEY=sk-ant-...        # Claude (claude-sonnet-4.5 / opus / haiku)
 OPENAI_API_KEY=sk-...               # GPT-4o / GPT-4.1
 DEEPSEEK_API_KEY=sk-...             # DeepSeek-V3 / DeepSeek-R1
-DASHSCOPE_API_KEY=sk-...            # 通义 Qwen-Max / Qwen-Plus
+DASHSCOPE_API_KEY=sk-...            # Tongyi Qwen-Max / Qwen-Plus
 MOONSHOT_API_KEY=sk-...             # Kimi K2
-# Ollama 本地无需 key，启动 `ollama serve` 即可使用 qwen2.5 / llama3.2
+# Ollama runs locally with no key — start `ollama serve` to use qwen2.5 / llama3.2
 ```
 
-## 用法速览
+## Usage at a glance
 
-### 一键综合分析
+### One-click comprehensive analysis
 
-侧边栏选好通道（不选则默认前 4 个 SEEG 通道），点击工具栏的 **「一键综合报告」**，前端会拉取 6 张图并叠在 SignalPanel：滤波波形、PSD、频段功率热图、HFO Ripple、IED、γ 频段相干性。
+Pick channels in the sidebar (defaults to the first 4 SEEG channels if none are selected), then click **"One-click report"** in the toolbar. The frontend fetches 6 figures and stacks them in the SignalPanel: filtered waveform, PSD, band-power heatmap, HFO ripple, IED, and γ-band coherence.
 
-### 自然语言对话
+### Natural-language chat
 
-右侧 ChatPanel 选好 LLM provider，直接说：
+In the ChatPanel on the right, choose an LLM provider and just ask:
 
-- "给我看 A1-A4 通道做 1–70Hz 带通后的波形"
-- "在前 30 秒里跑一下 ripple 检测，哪个通道发放率最高"
-- "前 4 个通道的 γ 频段相干性矩阵"
-- "对所有 SEEG 通道做 PSD，告诉我哪个通道在 60Hz 附近异常"
+- "Show me channels A1–A4 after a 1–70 Hz bandpass."
+- "Run ripple detection over the first 30 seconds — which channel has the highest rate?"
+- "γ-band coherence matrix for the first 4 channels."
+- "Run PSD on all SEEG channels and tell me which one looks abnormal around 60 Hz."
 
-模型会调用 agent 工具完成分析，图表通过 WebSocket 实时推到信号面板。
+The model calls agent tools to perform the analysis, and figures are pushed to the signal panel in real time over WebSocket.
 
-### 电极 3D 可视化
+### 3D electrode visualization
 
-下方 BrainPanel 的两个按钮：
+The BrainPanel at the bottom has two buttons:
 
-- **「生成合成坐标」**：根据 EDF 通道名按"皮层入针、向中线推进"模型生成 76 个 SEEG 触点的占位 MNI 坐标。先看到 3D 视图，再换真实坐标。
-- **「上传 CSV」**：列必须包含 `channel_name, x, y, z`（MNI152 mm），可选 `hemisphere`、`anat_label`。点击触点会联动 SignalPanel 的通道选择。
+- **"Generate synthetic coordinates"** — derives 76 placeholder MNI coordinates for SEEG contacts from the EDF channel names, using a "cortical entry, advance toward the midline" model. Use it to see the 3D view first, then swap in real coordinates.
+- **"Upload CSV"** — columns must include `channel_name, x, y, z` (MNI152 mm), with optional `hemisphere` and `anat_label`. Clicking a contact syncs the channel selection in the SignalPanel.
 
-## 后端 API（节选）
+## Backend API (selected)
 
-| 路由 | 用途 |
+| Route | Purpose |
 |---|---|
-| `POST /api/files/open` | 加载 EDF 并返回元信息（通道、采样率、时长） |
-| `POST /api/analysis/waveform` | 波形（可选 notch + 带通） |
+| `POST /api/files/open` | Load an EDF and return metadata (channels, sampling rate, duration) |
+| `POST /api/analysis/waveform` | Waveform (optional notch + bandpass) |
 | `POST /api/analysis/psd` | Welch PSD |
-| `POST /api/analysis/tfr` | Morlet 时频 |
-| `POST /api/analysis/band_power` | δ/θ/α/β/γ/high_gamma/ripple 频段功率 |
-| `POST /api/analysis/hfo` | HFO 检测（ripple / fast_ripple） |
-| `POST /api/analysis/ied` | 间期痫样放电检测 |
-| `POST /api/analysis/connectivity` | 频段连接性（coh / plv / wpli / imcoh） |
-| `POST /api/analysis/report` | 一键综合分析（6 张图） |
-| `POST /api/electrodes/{rid}/synthesize` | 生成合成 MNI 坐标 |
-| `POST /api/electrodes/{rid}/upload` | 上传 CSV/TSV 坐标 |
-| `WS  /ws/chat` | Pydantic AI 对话（流式 delta + figure 推送） |
+| `POST /api/analysis/tfr` | Morlet time–frequency |
+| `POST /api/analysis/band_power` | δ/θ/α/β/γ/high_gamma/ripple band power |
+| `POST /api/analysis/hfo` | HFO detection (ripple / fast_ripple) |
+| `POST /api/analysis/ied` | Interictal epileptiform discharge detection |
+| `POST /api/analysis/connectivity` | Band-limited connectivity (coh / plv / wpli / imcoh) |
+| `POST /api/analysis/report` | One-click comprehensive analysis (6 figures) |
+| `POST /api/electrodes/{rid}/synthesize` | Generate synthetic MNI coordinates |
+| `POST /api/electrodes/{rid}/upload` | Upload CSV/TSV coordinates |
+| `WS  /ws/chat` | Pydantic AI chat (streaming deltas + figure pushes) |
 
-完整接口文档（含 Pydantic schema）见 `http://127.0.0.1:8000/docs`。
+Full API docs (with Pydantic schemas) are available at `http://127.0.0.1:8000/docs`.
 
-## 测试
+## Tests
 
 ```bash
 make test           # pytest backend smoke tests
 ```
 
-## 里程碑
+## Milestones
 
-- [x] **M0** 仓库脚手架、环境、依赖
-- [x] **M1** EDF 加载 + 通道元数据 API
-- [x] **M2** 分析 MVP（滤波 / PSD / TFR / 波形 / 频段功率）
-- [x] **M3** Pydantic AI agent + WebSocket 对话
-- [x] **M4** 多 LLM provider 切换
-- [x] **M5** 电极坐标（CSV + 合成） + 3D BrainPanel
-- [x] **M6** HFO / IED / 连接性 + agent 工具注册
-- [x] **M7** 一键综合报告 + README
+- [x] **M0** Repo scaffolding, environment, dependencies
+- [x] **M1** EDF loading + channel-metadata API
+- [x] **M2** Analysis MVP (filtering / PSD / TFR / waveform / band power)
+- [x] **M3** Pydantic AI agent + WebSocket chat
+- [x] **M4** Multi-LLM-provider switching
+- [x] **M5** Electrode coordinates (CSV + synthetic) + 3D BrainPanel
+- [x] **M6** HFO / IED / connectivity + agent tool registration
+- [x] **M7** One-click comprehensive report + README
 
-详细计划见 `~/.claude/plans/seeg-lfp-proud-valiant.md`。
+## Notes & design decisions
 
-## 已知事项与设计决策
+- **EDF naming recognition**: the demo files follow the Nihon Kohden style (`EEG A1-Ref`, `POL A3`, `POL EKG1`). `io/edf_loader.classify_channel` strips prefixes/suffixes automatically and classifies channels as `seeg / ekg / emg / eog / bp / other`.
+- **HFO detection**: a Line-Length + RMS dual z-score screener (Staba 2002 / Gardner 2007 style). **Screening only** — clinical interpretation must be confirmed manually (artifacts cause false positives easily).
+- **3D brain rendering**: this release uses a Plotly 3D scatter + ellipsoidal head-shell mesh (no external asset dependency). Niivue + MNI152 NIfTI volume rendering is deferred to v2, which would require tens of MB of template files.
+- **Large-file performance**: every waveform endpoint subsamples to `max_points=5000` by default; TFR/HFO default to windows ≤ 60 s; connectivity defaults to 30 s with 2 s epochs.
+- **Session persistence**: currently an in-process dict cache (`session_store` + `_RAW_CACHE`), cleared on restart. A future version can persist parquet keyed by `(recording_id, params)`.
+- **CT/MRI electrode localization (path C)**: reserved in the plan; requires FreeSurfer + `mne.gui.locate_ieeg`, not implemented in this release.
 
-- **EDF 命名识别**：demo 为 Nihon Kohden 风格（`EEG A1-Ref`, `POL A3`, `POL EKG1`）。`io/edf_loader.classify_channel` 自动剥离前缀/后缀并把通道分类为 `seeg / ekg / emg / eog / bp / other`。
-- **HFO 检测**：是 Line-Length + RMS 双 z-score 筛选器（Staba 2002 / Gardner 2007 风格），**仅作筛查**——临床判读必须人工确认（伪迹易误报）。
-- **3D 脑图选型**：本期用 Plotly 3D scatter + 椭球头壳网格（无外部资源依赖）。Niivue + MNI152 NIfTI 体绘制留待 v2，需要附加几十 MB 模板文件。
-- **大文件性能**：所有波形 endpoint 默认按 `max_points=5000` 抽样；TFR/HFO 默认窗口 ≤60s；连接性默认 30s + 2s epoch。
-- **会话持久化**：当前为进程内字典缓存（`session_store` + `_RAW_CACHE`），重启即清空。后续可按 `(recording_id, params)` 写 parquet。
-- **CT/MRI 电极定位（路径 C）**：在 plan 中已预留，需要 FreeSurfer + `mne.gui.locate_ieeg`，本期未实现。
-
-## 许可
+## License
 
 MIT.
