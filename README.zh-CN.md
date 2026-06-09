@@ -4,6 +4,9 @@
 
 面向 SEEG（立体脑电图）LFP 信号分析的交互式 agent 工作台。
 
+> **🔴 在线 Demo：** **https://drzhangxd.github.io/seeg-agent/**
+> 纯浏览器端的可交互演示——所有分析与 LLM 对话均在前端**模拟**，使用合成示例数据（无真实病例、无后端）。需要真实 MNE 计算与在线大模型，请参照[快速开始](#快速开始)本地部署。
+
 **核心特性**
 - 交互式中文 Web 界面（Vite + React + TypeScript + Zustand）
 - 多大模型后端可热切换：Anthropic Claude、OpenAI、DeepSeek、通义千问、Kimi、本地 Ollama

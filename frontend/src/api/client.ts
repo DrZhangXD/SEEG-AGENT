@@ -1,3 +1,6 @@
+import { DEMO_MODE } from "../demo/config";
+import { demoApi } from "../demo/demoApi";
+
 // Default is empty so Vite's dev proxy handles /api and /ws.
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "";
 
@@ -165,7 +168,7 @@ export interface ReportResponse {
   summary: Record<string, unknown>;
 }
 
-export const api = {
+const realApi = {
   health: () => request<{ status: string }>("/api/health"),
   listDemo: () => request<DemoFile[]>("/api/files/demo"),
   openFile: (path: string) =>
@@ -250,6 +253,11 @@ export const api = {
       method: "DELETE",
     }),
 };
+
+// In demo mode (static GitHub Pages build) every call is served by an in-browser
+// simulator; otherwise we talk to the FastAPI backend.
+export type ApiClient = typeof realApi;
+export const api: ApiClient = DEMO_MODE ? demoApi : realApi;
 
 export interface ProviderInfo {
   id: string;

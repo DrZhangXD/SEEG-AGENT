@@ -4,6 +4,9 @@
 
 An interactive agent workbench for SEEG (stereo-electroencephalography) LFP signal analysis.
 
+> **🔴 Live demo:** **https://drzhangxd.github.io/seeg-agent/**
+> A fully interactive, browser-only preview — analyses and the LLM chat are **simulated client-side** on synthetic sample data (no real patient data, no backend). For real MNE computation and live LLM providers, run it locally (see [Quick start](#quick-start)).
+
 **Highlights**
 - Interactive web UI (Vite + React + TypeScript + Zustand)
 - Hot-swappable LLM backends: Anthropic Claude, OpenAI, DeepSeek, Tongyi Qianwen (Qwen), Kimi, and local Ollama
@@ -141,6 +144,25 @@ make test           # pytest backend smoke tests
 - **Large-file performance**: every waveform endpoint subsamples to `max_points=5000` by default; TFR/HFO default to windows ≤ 60 s; connectivity defaults to 30 s with 2 s epochs.
 - **Session persistence**: currently an in-process dict cache (`session_store` + `_RAW_CACHE`), cleared on restart. A future version can persist parquet keyed by `(recording_id, params)`.
 - **CT/MRI electrode localization (path C)**: reserved in the plan; requires FreeSurfer + `mne.gui.locate_ieeg`, not implemented in this release.
+
+## Live demo (GitHub Pages)
+
+The [live demo](https://drzhangxd.github.io/seeg-agent/) is the frontend built in a
+self-contained **demo mode** and published to GitHub Pages — no Python backend runs there.
+
+- Build flag: `VITE_DEMO_MODE=1` swaps the API client and chat WebSocket for an
+  in-browser simulator (`frontend/src/demo/`) that synthesizes realistic signals and
+  emits the exact same Plotly JSON the FastAPI backend produces. The data is synthetic;
+  there is no real patient data and no LLM call.
+- Deployment: `.github/workflows/deploy-demo.yml` builds and deploys on every push to
+  `main` (and via **Run workflow**). Enable it once under **Settings → Pages → Source =
+  "GitHub Actions"**.
+- Build locally:
+
+  ```bash
+  cd frontend
+  VITE_DEMO_MODE=1 VITE_BASE=/seeg-agent/ npm run build   # output in frontend/dist
+  ```
 
 ## License
 
