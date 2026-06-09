@@ -2,6 +2,10 @@
 
 **English** · [简体中文](./README.zh-CN.md)
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-online-brightgreen?logo=github)](https://drzhangxd.github.io/SEEG-AGENT/)
+[![Deploy demo](https://github.com/DrZhangXD/SEEG-AGENT/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/DrZhangXD/SEEG-AGENT/actions/workflows/deploy-demo.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
+
 An interactive agent workbench for SEEG (stereo-electroencephalography) LFP signal analysis.
 
 > **🔴 Live demo:** **https://drzhangxd.github.io/SEEG-AGENT/**

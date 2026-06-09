@@ -2,6 +2,10 @@
 
 **简体中文** · [English](./README.md)
 
+[![在线演示](https://img.shields.io/badge/在线演示-online-brightgreen?logo=github)](https://drzhangxd.github.io/SEEG-AGENT/)
+[![Deploy demo](https://github.com/DrZhangXD/SEEG-AGENT/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/DrZhangXD/SEEG-AGENT/actions/workflows/deploy-demo.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./README.md#license)
+
 面向 SEEG（立体脑电图）LFP 信号分析的交互式 agent 工作台。
 
 > **🔴 在线 Demo：** **https://drzhangxd.github.io/SEEG-AGENT/**
