@@ -4,7 +4,7 @@
 
 An interactive agent workbench for SEEG (stereo-electroencephalography) LFP signal analysis.
 
-> **🔴 Live demo:** **https://drzhangxd.github.io/seeg-agent/**
+> **🔴 Live demo:** **https://drzhangxd.github.io/SEEG-AGENT/**
 > A fully interactive, browser-only preview — analyses and the LLM chat are **simulated client-side** on synthetic sample data (no real patient data, no backend). For real MNE computation and live LLM providers, run it locally (see [Quick start](#quick-start)).
 
 **Highlights**
@@ -147,7 +147,7 @@ make test           # pytest backend smoke tests
 
 ## Live demo (GitHub Pages)
 
-The [live demo](https://drzhangxd.github.io/seeg-agent/) is the frontend built in a
+The [live demo](https://drzhangxd.github.io/SEEG-AGENT/) is the frontend built in a
 self-contained **demo mode** and published to GitHub Pages — no Python backend runs there.
 
 - Build flag: `VITE_DEMO_MODE=1` swaps the API client and chat WebSocket for an
@@ -161,7 +161,7 @@ self-contained **demo mode** and published to GitHub Pages — no Python backend
 
   ```bash
   cd frontend
-  VITE_DEMO_MODE=1 VITE_BASE=/seeg-agent/ npm run build   # output in frontend/dist
+  VITE_DEMO_MODE=1 VITE_BASE=/SEEG-AGENT/ npm run build   # output in frontend/dist
   ```
 
 ## License
