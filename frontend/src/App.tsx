@@ -8,11 +8,15 @@ import { ChatPanel } from "./components/ChatPanel";
 import { FileLoader } from "./components/FileLoader";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { SignalPanel } from "./components/SignalPanel";
+import { DEMO_MODE } from "./demo/config";
+import { DemoBanner } from "./demo/DemoBanner";
 import { useAppStore } from "./store/appStore";
 
 function App() {
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
   const setShowSettings = useAppStore((s) => s.setShowSettings);
+  const recording = useAppStore((s) => s.recording);
+  const setRecording = useAppStore((s) => s.setRecording);
 
   useEffect(() => {
     api
@@ -21,8 +25,23 @@ function App() {
       .catch(() => setBackendOk(false));
   }, []);
 
+  // In the static demo, open the sample recording automatically so the panels
+  // light up without a click.
+  useEffect(() => {
+    if (!DEMO_MODE || recording) return;
+    api
+      .listDemo()
+      .then((files) => (files[0] ? api.openFile(files[0].path) : null))
+      .then((meta) => {
+        if (meta) setRecording(meta);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="app">
+      {DEMO_MODE && <DemoBanner />}
       <header className="topbar">
         <div className="brand">SEEG-AGENT</div>
         <div className="topbar-right">
